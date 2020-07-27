@@ -1,8 +1,6 @@
-#include <SoftwareSerial.h>
+#include "FirebaseESP8266.h"
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <FirebaseArduino.h>
-#include <ArduinoJson.h>
+#include <SoftwareSerial.h>
 
 #define RX_PIN D2
 #define TX_PIN D3
@@ -17,6 +15,8 @@ SoftwareSerial XSERIAL = SoftwareSerial(RX_PIN, TX_PIN, false);
 
 String parsedData = "";
 bool isDataTransferCompleted = false;
+
+FirebaseData firebaseData;
 
 void connectWifi()
 {
@@ -40,32 +40,7 @@ void registerFirebase()
 {
   Serial.println("Initializing Firebase");
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-  //Firebase.stream("led_status");
-
-  delay(10);
-
-  if (Firebase.failed())
-  {
-    Serial.print("Connection failed");
-    Serial.println(Firebase.error());
-    return;
-  }
-  else
-  {
-    Serial.println("Connection success");
-  }
-
-  Firebase.setInt("led_status", 1);
-  if (Firebase.failed())
-  {
-    Serial.print("Set failed");
-    Serial.println(Firebase.error());
-    return;
-  }
-  else
-  {
-    Serial.println("Set success");
-  }
+  Firebase.reconnectWiFi(true);
 }
 
 void captureData () {
@@ -99,10 +74,7 @@ void loop()
   if (isDataTransferCompleted) {
     Serial.println(parsedData);
 
-    Firebase.setString("sensor", parsedData);
-    if (Firebase.failed()) {
-     Serial.println("Set Failed");
-    }
+    Firebase.setString(firebaseData, "sensor", parsedData);
     
     isDataTransferCompleted = false;
     parsedData = "";
