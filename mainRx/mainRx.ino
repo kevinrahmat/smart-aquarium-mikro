@@ -1,6 +1,7 @@
 #include "FirebaseESP8266.h"
 #include <ESP8266WiFi.h>
 #include <SoftwareSerial.h>
+#include <ArduinoJson.h>
 
 #define RX_PIN D2
 #define TX_PIN D3
@@ -17,6 +18,8 @@ String parsedData = "";
 bool isDataTransferCompleted = false;
 
 FirebaseData firebaseData;
+
+StaticJsonBuffer<200> jsonBuffer;
 
 void connectWifi()
 {
@@ -58,13 +61,13 @@ void captureData () {
 void setup()
 {
   delay(1000);
-
+  
   XSERIAL.begin(9600);
   Serial.begin(9600);
-
+  
   connectWifi();
   registerFirebase();
-
+  
   Serial.println("Listening to ...");
 }
 
@@ -72,11 +75,24 @@ void loop()
 {  
   captureData();
   if (isDataTransferCompleted) {
-    Serial.println(parsedData);
+    JsonObject& object = jsonBuffer.parseObject(parsedData);
 
-    Firebase.setString(firebaseData, "sensor", parsedData);
-    
-    isDataTransferCompleted = false;
-    parsedData = "";
+    if (object.success()) {
+      
+      const char* temperature = object["temperature"];
+      const char* turbidity = object["turbidity"];
+      
+      Serial.println(parsedData);
+      Serial.print(temperature);
+      Serial.print("|");
+      Serial.println(turbidity);
+      
+      Firebase.set(firebaseData, "temperature/value", temperature);
+      Firebase.set(firebaseData, "turbidity/value", turbidity);
+      
+      isDataTransferCompleted = false;
+      parsedData = "";
+      
+    }
   }
 }
