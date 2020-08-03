@@ -19,8 +19,6 @@ bool isDataTransferCompleted = false;
 
 FirebaseData firebaseData;
 
-StaticJsonBuffer<200> jsonBuffer;
-
 void connectWifi()
 {
   Serial.print("Configuring access point...");
@@ -75,14 +73,16 @@ void loop()
 {  
   captureData();
   if (isDataTransferCompleted) {
+    StaticJsonBuffer<200> jsonBuffer;
     JsonObject& object = jsonBuffer.parseObject(parsedData);
+
+    Serial.println(parsedData);
 
     if (object.success()) {
       
       const char* temperature = object["temperature"];
       const char* turbidity = object["turbidity"];
       
-      Serial.println(parsedData);
       Serial.print(temperature);
       Serial.print("|");
       Serial.println(turbidity);
@@ -90,9 +90,9 @@ void loop()
       Firebase.set(firebaseData, "temperature/value", temperature);
       Firebase.set(firebaseData, "turbidity/value", turbidity);
       
-      isDataTransferCompleted = false;
-      parsedData = "";
-      
     }
+    
+    isDataTransferCompleted = false;
+    parsedData = "";
   }
 }
