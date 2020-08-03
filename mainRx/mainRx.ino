@@ -80,8 +80,8 @@ void loop()
 
     if (object.success()) {
       
-      const char* temperature = object["temperature"];
-      const char* turbidity = object["turbidity"];
+      const int temperature = object["temperature"];
+      const int turbidity = object["turbidity"];
       
       Serial.print(temperature);
       Serial.print("|");
