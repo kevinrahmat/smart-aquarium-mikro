@@ -32,7 +32,6 @@ void connectWifi()
   Serial.println("");
   Serial.println("WiFi connected");
 
-  
   parsedData.reserve(200);
   delay(500);
 }
@@ -47,6 +46,8 @@ void registerFirebase()
 void captureData () {
   if(XSERIAL.available()){
     char singleData = (char)XSERIAL.read();
+
+    Serial.print(singleData);
         
     if (singleData == '\n') {
       isDataTransferCompleted = true;
@@ -61,7 +62,7 @@ void setup()
   delay(1000);
   
   XSERIAL.begin(9600);
-  Serial.begin(9600);
+  Serial.begin(74880);
   
   connectWifi();
   registerFirebase();
@@ -76,12 +77,12 @@ void loop()
     StaticJsonBuffer<200> jsonBuffer;
     JsonObject& object = jsonBuffer.parseObject(parsedData);
 
-    Serial.println(parsedData);
+//    Serial.println(parsedData);
 
     if (object.success()) {
       
-      const int temperature = object["temperature"];
-      const int turbidity = object["turbidity"];
+      const int temperature = object["t"];
+      const int turbidity = object["u"];
       
       Serial.print(temperature);
       Serial.print("|");
