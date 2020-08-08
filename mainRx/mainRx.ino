@@ -90,11 +90,11 @@ void readAutoModeData()
     Serial.println(autoMode.errorReason());
   }
   
-  if (firebaseData.streamTimeout())
-  {
-    Serial.println("Auto Mode timeout, resume streaming...");
-    Serial.println();
-  }
+//  if (firebaseData.streamTimeout())
+//  {
+//    Serial.println("Auto Mode timeout, resume streaming...");
+//    Serial.println();
+//  }
   
   if (autoMode.streamAvailable())
   {
@@ -116,12 +116,12 @@ void readHeaterStatus()
     Serial.println(heaterStatus.errorReason());
   }
   
-  if (heaterStatus.streamTimeout())
-  {
-    Serial.println("Heater timeout, resume streaming...");
-    Serial.println();
-  }
-  
+//  if (heaterStatus.streamTimeout())
+//  {
+//    Serial.println("Heater timeout, resume streaming...");
+//    Serial.println();
+//  }
+//  
   if (heaterStatus.streamAvailable())
   {
     if (heaterStatus.dataType() == "boolean") {
@@ -142,11 +142,11 @@ void readPumpStatus()
     Serial.println(pumpStatus.errorReason());
   }
   
-  if (pumpStatus.streamTimeout())
-  {
-    Serial.println("Pump timeout, resume streaming...");
-    Serial.println();
-  }
+//  if (pumpStatus.streamTimeout())
+//  {
+//    Serial.println("Pump timeout, resume streaming...");
+//    Serial.println();
+//  }
   
   if (pumpStatus.streamAvailable())
   {
@@ -208,35 +208,40 @@ void loop()
       Serial.print("|");
       Serial.println(turbidity);
 
-      if (autoModeStatus) {
-        if (temperature < 22) {
-          digitalWrite(HEATER_PIN,HIGH);
+      if (temperature != 0 && turbidity != 0) {
+
+        if (autoModeStatus) {
+          if (temperature < 26) {
+            digitalWrite(HEATER_PIN,HIGH);
+            Firebase.set(firebaseData, "status/heater", true);
+          } else {
+            digitalWrite(HEATER_PIN, LOW);
+            Firebase.set(firebaseData, "status/heater", false);
+          }
+          if (turbidity < 3) {
+             digitalWrite(PUMP_PIN,HIGH);
+             Firebase.set(firebaseData, "status/pump", true);
+          } else {
+            digitalWrite(PUMP_PIN, LOW);
+             Firebase.set(firebaseData, "status/pump", false);
+          }
         } else {
-          digitalWrite(HEATER_PIN, LOW);
+          if (heaterModeStatus) {
+             digitalWrite(HEATER_PIN,HIGH);
+           } else {
+             digitalWrite(HEATER_PIN, LOW);
+           }
+           if (pumpModeStatus) {
+             digitalWrite(PUMP_PIN,HIGH);
+           } else {
+             digitalWrite(PUMP_PIN, LOW);
+           }
         }
   
-        if (turbidity < 2) {
-           digitalWrite(PUMP_PIN,HIGH);
-        } else {
-          digitalWrite(PUMP_PIN, LOW);
-        }
-      } else {
-        if (heaterModeStatus) {
-           digitalWrite(HEATER_PIN,HIGH);
-         } else {
-           digitalWrite(HEATER_PIN, LOW);
-         }
-         if (pumpModeStatus) {
-           digitalWrite(PUMP_PIN,HIGH);
-         } else {
-           digitalWrite(PUMP_PIN, LOW);
-         }
-      }
-
-      
-      Firebase.set(firebaseData, "temperature/value", temperature);
-      Firebase.set(firebaseData, "turbidity/value", turbidity);
-      
+        Firebase.set(firebaseData, "temperature/value", temperature);
+        Firebase.set(firebaseData, "turbidity/value", turbidity);
+       
+       }
     }
     
     isDataTransferCompleted = false;
